@@ -45,6 +45,38 @@ PATCHES = [
         self.port_handler.setPacketTimeoutMillis((wait_length * tx_time_per_byte) + (3.0 * scs.MAX_ID) + _tunnel_margin)""",
     ),
     (
+        "robots/so_follower/so_follower.py",
+        "import logging\nimport time",
+        "import logging\nimport os\nimport time",
+    ),
+    (
+        "robots/so_follower/so_follower.py",
+        """                self.bus.write("Operating_Mode", motor, OperatingMode.POSITION.value)
+                # Set P_Coefficient to lower value to avoid shakiness (Default is 32)
+                self.bus.write("P_Coefficient", motor, 16)
+                # Set I_Coefficient and D_Coefficient to default value 0 and 32
+                self.bus.write("I_Coefficient", motor, 0)
+                self.bus.write("D_Coefficient", motor, 32)""",
+        """                self.bus.write("Operating_Mode", motor, OperatingMode.POSITION.value)
+                # Gains env-overridable: lerobot's soft default (P=16) tracks mushily.
+                # Servo firmware default is P=32. Raise D along with P to damp overshoot.
+                self.bus.write("P_Coefficient", motor, int(os.environ.get("LEROBOT_P_COEF", "16")))
+                self.bus.write("I_Coefficient", motor, int(os.environ.get("LEROBOT_I_COEF", "0")))
+                self.bus.write("D_Coefficient", motor, int(os.environ.get("LEROBOT_D_COEF", "32")))""",
+    ),
+    (
+        "robots/so_follower/so_follower.py",
+        """                if motor == "gripper":
+                    self.bus.write("Max_Torque_Limit", motor, 500)  # 50% of max torque to avoid burnout
+                    self.bus.write("Protection_Current", motor, 250)  # 50% of max current to avoid burnout
+                    self.bus.write("Overload_Torque", motor, 25)  # 25% torque when overloaded""",
+        """                if motor == "gripper":
+                    # Env-overridable anti-burnout caps (defaults = lerobot stock).
+                    self.bus.write("Max_Torque_Limit", motor, int(os.environ.get("LEROBOT_GRIPPER_TORQUE", "500")))  # /1000
+                    self.bus.write("Protection_Current", motor, int(os.environ.get("LEROBOT_GRIPPER_CURRENT", "250")))  # /500
+                    self.bus.write("Overload_Torque", motor, int(os.environ.get("LEROBOT_GRIPPER_OVERLOAD", "25")))  # % when stalled""",
+    ),
+    (
         "motors/motors_bus.py",
         "import abc\nimport logging\nfrom collections.abc import Sequence",
         "import abc\nimport logging\nimport os\nfrom collections.abc import Sequence",
